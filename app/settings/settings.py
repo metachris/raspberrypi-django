@@ -72,6 +72,7 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     "/Users/chris/Projects/private/raspberrypi/projects/django/app/static/",
+    "/opt/rpi-django/django/app/static/",
     )
 
 # List of finder classes that know how to find static files in
@@ -108,6 +109,7 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     "/Users/chris/Projects/private/raspberrypi/projects/django/app/templates",
+    "/opt/rpi-django/django/app/templates",
     )
 
 INSTALLED_APPS = (
