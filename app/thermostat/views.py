@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.contrib import auth
 
 import models
+import tools.gpio
 
 def home(request):
     last_events = models.ThermoSwitchEvent.objects.all().order_by("-date_created")[:5]
@@ -32,11 +33,13 @@ def log_event(is_on):
 
 
 def turn_on(request):
+    tools.gpio.send_to_gpio_daemon("thermo on")
     log_event(True)
     return HttpResponseRedirect("/")
 
 
 def turn_off(request):
+    tools.gpio.send_to_gpio_daemon("thermo off")
     log_event(False)
     return HttpResponseRedirect("/")
 

@@ -48,6 +48,9 @@ class RunAfterIntervalThread(threading.Thread):
 
 def thermo_turn_off():
     GPIO.output(11, GPIO.LOW)
+    global threadpool
+    for t in threadpool:
+        t.is_cancelled = True
     print "- Thermo turned off"
 
 
@@ -58,7 +61,9 @@ def thermo_turn_on():
     global threadpool
     for t in threadpool:
         t.is_cancelled = True
-    t = RunAfterIntervalThread(5, thermo_turn_off)
+
+    # Turn off after 30 minutes
+    t = RunAfterIntervalThread(30 * 60, thermo_turn_off)
     t.start()
     threadpool.append(t)
     print "- Thermo turned on"
@@ -82,6 +87,8 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             thermo_turn_on()
         elif self.data == "thermo off":
             thermo_turn_off()
+        elif self.data == "quit":
+            exit(-1)
 
         # just send back the same data, but upper-cased
         #self.request.sendall(self.data.upper())

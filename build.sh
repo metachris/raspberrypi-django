@@ -12,6 +12,8 @@ echo "Cleaning Up..."
 cd django
 rm -rf env
 rm -rf .git*
+rm -rf app/static/twitter-bootstrap/.git*
+
 rm -rf .idea
 rm -rf .DS_Store
 rm GPIODummy.py
