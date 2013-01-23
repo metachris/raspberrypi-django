@@ -30,6 +30,13 @@ def upload():
     # Pack dir with tar
     local("sh build.sh")
     put("/tmp/rp1dpl/pack.tar.gz", "/opt/rpi-django/")
+    with cd("/opt/rpi-django/"):
+        run("tar -xvf pack.tar.gz")
+        run("rm pack.tar.gz")
+
+def restart_django():
+    run("kill -9 `cat /tmp/uwsgi-django.pid")
+    run("uwsgi --ini /opt/rpi-django/django/app/uwsgi.ini")
 #    """Upload files not in git (from list in code)"""
 #    upload_settings()
 #    files = ["app/templates/analytics_snippet.html"]

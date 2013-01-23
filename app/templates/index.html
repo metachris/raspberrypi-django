@@ -7,13 +7,17 @@
     <h1><a href="/">WG Raspberry</a></h1>
 </div>
 
-<p>
-    <h3>Thermostat</h3>
-    </p>
-<p>
-    <a href="/thermostat/turn_on"><button class="btn btn-large btn-success" type="button">Turn on for 30 min</button></a>
-    &nbsp;
-    <a href="/thermostat/turn_off"><button class="btn btn-large btn-warning" type="button">Turn off</button></a>
+<p><h2>Thermo Control</h2></p>
+
+    {% if thermo_is_heating %}
+        <p>
+            <span class="label label-success">Heat is ON ({{ thermo_time_since_last_on_mins }} more minutes)</span>
+        </p>
+        <br >
+        <a href="/thermostat/turn_off"><button class="btn btn-large btn-warning" type="button">Turn off</button></a>
+    {% else %}
+        <a href="/thermostat/turn_on"><button class="btn btn-large btn-success" type="button">Turn on for 30 min</button></a>
+    {% endif %}
 </p>
 
     <br>
