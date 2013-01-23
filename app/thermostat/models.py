@@ -15,12 +15,12 @@ HASH_CHOICES = (
     )
 
 
-#class ThermoSwitchEvent(models.Model):
-#    user = models.OneToOneField(User, blank=True, null=True)
-#    date_created = models.DateTimeField('date created', auto_now_add=True)
-#    is_on = models.BooleanField()
-#    def __unicode__(self):
-#        return "<ThermoSwitchEvent(%s, %s, ->%s)>" % (self.date_created, self.user, self.is_on)
+class ThermoSwitchEvent(models.Model):
+    user = models.OneToOneField(User, blank=True, null=True)
+    date_created = models.DateTimeField('date created', auto_now_add=True)
+    is_on = models.BooleanField()
+    def __unicode__(self):
+        return "<ThermoSwitchEvent(%s, %s, ->%s)>" % (self.date_created, self.user, self.is_on)
 
 
 

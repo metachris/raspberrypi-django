@@ -74,3 +74,22 @@ After changing a model we need to create the migration file, and then apply it t
     # Apply migration
     $ ./manage.py migrate <APP_NAME>
 
+
+
+Get Started
+===========
+
+Files and Directories
+---------------------
+
+/opt/rpi-django (main local directory)
+/opt/rpi-django/media (user uploaded files)
+
+
+Urls
+----
+
+
+
+
+
