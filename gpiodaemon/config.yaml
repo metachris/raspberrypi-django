@@ -1,0 +1,6 @@
+gpio-setup:
+  17: OUTPUT  # Thermo Relais Control Wire
+
+commands:
+  "thermo on": set 17 HIGH
+  "thermo off": set 17 LOW

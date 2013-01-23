@@ -11,7 +11,7 @@ class DummyFunction(object):
         return self.name
 
 
-class DummyGPIO:
+class Dummy(object):
     def __init__(self):
         pass
 
