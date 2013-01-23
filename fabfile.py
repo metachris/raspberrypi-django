@@ -9,23 +9,15 @@ from fabric.contrib.files import exists
 from app.settings import settings_dev
 from app.settings import settings_production
 
-
-# Deployments log file (in same path as fabfile)
-#HISTFILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "deployments.log")
+HOSTS = ["raspberry1"]
+HISTFILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "deployments.log")
 
 # Helper for later
-#NOW = datetime.datetime.now()
-#NOW_DATE_STR = NOW.strftime("%Y-%m-%d")
+NOW = datetime.datetime.now()
+NOW_DATE_STR = NOW.strftime("%Y-%m-%d")
 
 
-# Environments
-def raspberry1():
-    "Set production target"
-    env.use_ssh_config = True
-    env.hosts = ["raspberry1"]
-
-
-def upload():
+def _upload():
     local("sh build.sh")
     put("/tmp/raspberry-django-deploy/pack.tar.gz", "/opt/rpi-django/")
     with cd("/opt/rpi-django/"):
@@ -34,11 +26,20 @@ def upload():
     local("rm -rf /tmp/raspberry-django-deploy")
 
 
-def restart_django():
+def _restart_django():
     run("kill -9 `cat /tmp/uwsgi-django.pid`")
     run("uwsgi --ini /opt/rpi-django/django/app/uwsgi.ini")
 
 
 def deploy():
-    upload()
-    restart_django()
+    env.use_ssh_config = True
+    env.hosts = HOSTS
+    _upload()
+    _restart_django()
+    _log("success")
+
+
+def _log(info, id="deployment"):
+    """Log a deployment or rollback"""
+    f = open(HISTFILE, "a+")
+    f.write("%s | %s | %s\n" % (id, datetime.datetime.now(), info))
