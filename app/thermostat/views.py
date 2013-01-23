@@ -2,10 +2,11 @@ import datetime
 
 from django.http import  HttpResponseRedirect
 from django.shortcuts import render
-from django.contrib import auth
 
-import models
-import tools.gpio
+import thermostat.models as models
+import mainapp.tools.gpio
+#import mainapp.tools.sms
+#mainapp.tools.sms.send_sms("+431234321", "hi")
 
 
 def home(request):
@@ -27,14 +28,14 @@ def home(request):
 
 
 def turn_on(request):
-    tools.gpio.send_to_gpio_daemon("thermo on")
+    mainapp.tools.gpio.send_to_gpio_daemon("thermo on")
     event = models.ThermoSwitchEvent(is_on=True)
     event.save()
     return HttpResponseRedirect("/")
 
 
 def turn_off(request):
-    tools.gpio.send_to_gpio_daemon("thermo off")
+    mainapp.tools.gpio.send_to_gpio_daemon("thermo off")
     event = models.ThermoSwitchEvent(is_on=False)
     event.save()
     return HttpResponseRedirect("/")

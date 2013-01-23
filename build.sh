@@ -1,11 +1,11 @@
 #!/bin/bash
 
 cd /tmp
-rm -rf rp1dpl
-mkdir rp1dpl
-cd rp1dpl
+rm -rf raspberry-django-deploy
+mkdir raspberry-django-deploy
+cd raspberry-django-deploy
 
-echo "Copying Project to /tmp/rp1dpl ..."
+echo "Copying Project to /tmp/raspberry-django-deploy ..."
 cp -pvr /Users/chris/Projects/private/raspberrypi/projects/django .
 
 echo "Cleaning Up..."

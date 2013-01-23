@@ -27,6 +27,13 @@ else:
 NOW = datetime.datetime.now()
 DATE_STR = NOW.strftime("%Y-%m-%d")
 
+# Email setup
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_HOST_USER = EMAIL_USER  # comes from settings_dev or _production
+EMAIL_HOST_PASSWORD = EMAIL_PASS
+EMAIL_USE_TLS = True
+
 # Second step: Common settings
 # ----------------------------
 # Local time zone for this installation. Choices can be found here:
@@ -140,6 +147,7 @@ INSTALLED_APPS = (
     #'redis_status',
 
     # Main app from the thermostat project
+    'app.mainapp',
     'app.thermostat'
     )
 

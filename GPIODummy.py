@@ -3,9 +3,9 @@ class DummyFunction(object):
         self.name = name
 
     def call(self, *args, **kwargs):
-        self.info = "%s(%s, %s) called on Dummy object" % (self.name,
+        # Instead of doing anything, the dummy only prints which function was called
+        print "%s(%s, %s) called on Dummy object" % (self.name,
                 ", ".join([repr(x) for x in args]), kwargs)
-        print self.info
 
     def __repr__(self):
         return self.name

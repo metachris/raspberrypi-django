@@ -1,24 +1,68 @@
-Django Boilerplate is a fast, robust and future-proof base template to get your project off the ground quickly and right-footed.
-
-* [Twitter bootstrap](http://twitter.github.com/bootstrap/) (uses [LessCSS](http://lesscss.org/)) and jQuery
-* Split settings files for dev/test/prod environments
-* [South](http://south.aeracode.org/) for database migrations
-* Caching with [Redis](https://github.com/sebleier/django-redis-cache/) and [Cache Machine](https://github.com/jbalogh/django-cache-machine)
-* Custom template tags, Forms examples, etc.
-* [django-debug-toolbar](https://github.com/django-debug-toolbar)
+The goal of this project is to get Django running on the Raspberry Pi and serve it via Nginx and UWSGI over port 80. Deployment
+to the RPi is done via Fabric. Incorporates goodies from [django-boilerplate](https://github.com/metachris/django-boilerplate)
+and [photoblog](https://github.com/metachris/photoblog).
 
 
-Quick Start
-===========
-Create a project directory, setup virtualenv, clone the project and setup the dependencies:
+Quick Start / Tutorial
+======================
+Raspberry Initial Setup
+-----------------------
+* Download SD card image and boot for 1st time; change settings as needed
+* Setup OpenSSH, update system
+* Wifi Setup
 
-	# Clone django-boilerplate into project directory
-    $ git clone git@github.com:metachris/django-boilerplate.git <YOUR_PROJECT_DIR>
-    $ cd <YOUR_PROJECT_DIR>
+Time to install some tools:
 
-	# Create and activate virtual env, and install dependencies
-	$ virtualenv <ENV_DIR>
-	$ . <ENV_DIR>/bin/activate
+    $ sudo apt-get screen htop git
+    $ sudo apt-get install python-rpi.gpio
+
+
+Nginx Webserver Setup
+---------------------
+http://nginx.org/
+
+    $ sudo apt-get install nginx
+    $ sudo /etc/init.d/nginx start
+
+Now visit `http://[RaspberryPi-IP]` with your browser
+
+
+UWSGI Setup
+-----------
+
+    # sudo apt-get install uwsgi uwsgi-plugin-python
+
+
+
+DEV Desktop/Laptop Setup
+========================
+The following setup is for your development machine:
+
+Get Pip
+-------
+    $ apt-get install python-setuptools
+    $ curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
+    $ sudo python get-pip.py
+
+
+Get VirtualEnv
+--------------
+
+    $ pip install virtualenv
+
+
+Django App Setup
+----------------
+https://github.com/metachris/django-boilerplate
+
+    $ cd /var
+    $ sudo mkdir www
+    $ sudo chown chris:chris www
+    $ cd www
+    $ git clone https://github.com/metachris/django-boilerplate.git <YOUR_PROJECT_DIR> (we use /var/www/django)
+    $ cd django
+    $ virtualenv env
+    $ . env/bin/activate
     $ pip install -r dependencies.txt
 
     # Setting up Twitter Bootstrap
@@ -30,64 +74,17 @@ Create a project directory, setup virtualenv, clone the project and setup the de
     $ make bootstrap
 
 
-Twitter-Bootstrap
-=================
+Customize Django
+----------------
 
-Bootstrap is added as a git submodule (into `boilerplate/static/twitter-bootstrap`). Make sure you have the LessCSS compiler (`lessc`) and `uglifyjs` installed for the build toolchain to work. To build bootstrap, execute the following command in `boilerplate/static/twitter-bootstrap`:
+1. Edit the settings
+2. Init DB:
 
-    $ make build
-
-
-South: Easy Database Schema Migrations
-======================================
-
-South detects model changes and makes schema migrations extremely easy as well as reversible and documented. It is basically used as a replacement for `syncdb`. The [South tutorial](http://south.readthedocs.org/en/latest/index.html) shows how to easily setup South for an
-all new app or converting an existing one.
-
-South with a brand new app
---------------------------
-Before any models are created, run syncdb once to add the tables for the apps.
-
-    $ python manage.py syncdb
-
-After the initial db setup, store the schema:
-
-    $ python manage.py schemamigration <APP_NAME> --initial
-
-
-South with an existing app
---------------------------
-When models are already saved in the database, we need to run `syncdb` to add the tables for the
-south app, and then `convert_to_south <appname>`:
-
-    $ python manage.py syncdb
-    $ python manage.py convert_to_south <APP_NAME>
-
-
-Schema Migrations
------------------
-After changing a model we need to create the migration file, and then apply it to update the schema in the database:
-
-    # Create migration file
-    $ ./manage.py schemamigration <APP_NAME> --auto
-
-    # Apply migration
-    $ ./manage.py migrate <APP_NAME>
+	$ python manage.py syncdb
+	$ python manage.py schemamigration mainapp --initial
 
 
 
-Get Started
-===========
-
-Files and Directories
----------------------
-
-/opt/rpi-django (main local directory)
-/opt/rpi-django/media (user uploaded files)
-
-
-Urls
-----
 
 
 

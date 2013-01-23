@@ -11,11 +11,11 @@ from app.settings import settings_production
 
 
 # Deployments log file (in same path as fabfile)
-HISTFILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "deployments.log")
+#HISTFILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "deployments.log")
 
 # Helper for later
-NOW = datetime.datetime.now()
-NOW_DATE_STR = NOW.strftime("%Y-%m-%d")
+#NOW = datetime.datetime.now()
+#NOW_DATE_STR = NOW.strftime("%Y-%m-%d")
 
 
 # Environments
@@ -26,22 +26,19 @@ def raspberry1():
 
 
 def upload():
-    #rpi1()
-    # Pack dir with tar
     local("sh build.sh")
-    put("/tmp/rp1dpl/pack.tar.gz", "/opt/rpi-django/")
+    put("/tmp/raspberry-django-deploy/pack.tar.gz", "/opt/rpi-django/")
     with cd("/opt/rpi-django/"):
         run("tar -xvf pack.tar.gz")
         run("rm pack.tar.gz")
+    local("rm -rf /tmp/raspberry-django-deploy")
+
 
 def restart_django():
-    run("kill -9 `cat /tmp/uwsgi-django.pid")
+    run("kill -9 `cat /tmp/uwsgi-django.pid`")
     run("uwsgi --ini /opt/rpi-django/django/app/uwsgi.ini")
-#    """Upload files not in git (from list in code)"""
-#    upload_settings()
-#    files = ["app/templates/analytics_snippet.html"]
-#    for fn in files:
-#        fn_from = os.path.join(env.dir_local, fn)
-#        fn_to = os.path.join(env.dir_remote, fn)
-#        put(fn_from, fn_to)
 
+
+def deploy():
+    upload()
+    restart_django()
