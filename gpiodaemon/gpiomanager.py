@@ -1,9 +1,10 @@
 """
-Manages communication with GPIO and receiving commands
+Receives user-commands and communicates with the RPi.GPIO lib to switch the
+pins etc. Also manages scheduled tasks (eg. "rtimeout 1800 thermo off" to
+execute the command "thermo off" in 30 minutes (1800 seconds).
 
-RPi.GPIO works with pin-ids instead of GPIO-ids (for instance GPIO17 has pin-id 11).
-
-GPIO-Manager can also asynchronously run commands and replace existing timeouts on them with new ones.
+GPIOmanager uses GPIO-ids, which are different from the pin-ids. For
+instance GPIO17 has pin-id 11.
 """
 import yaml
 import time
