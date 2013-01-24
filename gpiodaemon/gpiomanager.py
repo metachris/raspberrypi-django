@@ -8,14 +8,18 @@ instance GPIO17 has pin-id 11.
 """
 import yaml
 import time
+from os import geteuid
 from threading import Thread
 
 # Import either the dummy or the real lib
 try:
     import RPi.GPIO as RPiGPIO
+    is_dummy_gpio = False
+
 except:
     import dummy
     RPiGPIO = dummy.Dummy()
+    is_dummy_gpio = True
 
 
 CONFIG_FILE = "config.yaml"
@@ -54,6 +58,11 @@ class GPIO(object):
     async_pool = []
 
     def __init__(self):
+        # To access the real GPIOs, we need superuser rights
+        if not is_dummy_gpio and geteuid() != 0:
+            print "Error: gpio-daemon needs to be run as root to access GPIO ports.\n"
+            exit(1)
+
         RPiGPIO.setmode(RPiGPIO.BOARD)
         self._gpio_init()
 
