@@ -16,9 +16,9 @@ rm -rf app/static/twitter-bootstrap/.git*
 
 rm -rf .idea
 rm -rf .DS_Store
-rm GPIODummy.py*
 rm fabfile.*
 rm build.sh
+find ./ -name "*.pyc" | xargs rm -f
 
 echo "Packing..."
 cd ..

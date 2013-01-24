@@ -9,14 +9,19 @@ from fabric.contrib.files import exists
 from app.settings import settings_dev
 from app.settings import settings_production
 
-HOSTS = ["raspberry1"]
 HISTFILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "deployments.log")
 
 # Helper for later
 NOW = datetime.datetime.now()
 NOW_DATE_STR = NOW.strftime("%Y-%m-%d")
 
+# Targets
+def rpi1():
+    env.use_ssh_config = True
+    env.hosts = ["raspberry1"]
 
+
+# Commands
 def _upload():
     local("sh build.sh")
     put("/tmp/raspberry-django-deploy/pack.tar.gz", "/opt/rpi-django/")
@@ -26,16 +31,14 @@ def _upload():
     local("rm -rf /tmp/raspberry-django-deploy")
 
 
-def _restart_django():
+def restart_django():
     run("kill -9 `cat /tmp/uwsgi-django.pid`")
     run("uwsgi --ini /opt/rpi-django/django/app/uwsgi.ini")
 
 
 def deploy():
-    env.use_ssh_config = True
-    env.hosts = HOSTS
     _upload()
-    _restart_django()
+    restart_django()
     _log("success")
 
 

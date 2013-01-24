@@ -131,12 +131,15 @@ class GPIO(object):
             # Replaceable timeout. Replaces based on "cmd" only.
             timeout = cmd_parts[1]
             cmd = " ".join(cmd_parts[2:])
-            print "rtimeout: %s: %s" % (timeout, cmd)
+            print "understood rtimeout. cmd in %s seconds: `%s`" % (timeout, cmd)
 
             # Disable all old ones from the pool
             for async_cmd in self.async_pool:
                 if async_cmd.cmd == cmd and async_cmd.is_replaceable:
                     async_cmd.is_cancelled = True
+
+            # Remove cancelled threads from the pool
+            self.async_pool[:] = [t for t in self.async_pool if not t.is_cancelled]
 
             # Now add new task
             t = AsyncCmd(int(timeout), cmd, self.handle_cmd, is_replaceable=True)
@@ -151,6 +154,13 @@ if __name__ == "__main__":
     # Some testing
     g = GPIO()
     g.handle_cmd("thermo on")
+    g.handle_cmd("rtimeout 3 thermo off")
+    time.sleep(1)
+    g.handle_cmd("rtimeout 3 thermo off")
+    time.sleep(1)
+    g.handle_cmd("rtimeout 3 thermo off")
+    time.sleep(1)
+
     g.handle_cmd("rtimeout 3 thermo off")
 
     time.sleep(5)

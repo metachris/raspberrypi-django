@@ -1,12 +1,11 @@
+import time
 import datetime
-
+from threading import Thread
 from django.http import  HttpResponseRedirect
 from django.shortcuts import render
 
 import thermostat.models as models
 import mainapp.tools.gpio
-#import mainapp.tools.sms
-#mainapp.tools.sms.send_sms("+431234321", "hi")
 
 
 def home(request):
@@ -27,16 +26,16 @@ def home(request):
             "thermo_time_since_last_on_mins": time_since_last_on_mins })
 
 
-def turn_on(request):
-    mainapp.tools.gpio.send_to_gpio_daemon("thermo on")
-    event = models.ThermoSwitchEvent(is_on=True)
-    event.save()
-    return HttpResponseRedirect("/")
-
-
 def turn_off(request):
     mainapp.tools.gpio.send_to_gpio_daemon("thermo off")
     event = models.ThermoSwitchEvent(is_on=False)
     event.save()
     return HttpResponseRedirect("/")
 
+
+def turn_on(request):
+    mainapp.tools.gpio.send_to_gpio_daemon("thermo on")
+    mainapp.tools.gpio.send_to_gpio_daemon("rtimeout 1800 thermo off")
+    event = models.ThermoSwitchEvent(is_on=True)
+    event.save()
+    return HttpResponseRedirect("/")
