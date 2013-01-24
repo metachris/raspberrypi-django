@@ -5,6 +5,9 @@ execute the command "thermo off" in 30 minutes (1800 seconds).
 
 GPIOmanager uses GPIO-ids, which are different from the pin-ids. For
 instance GPIO17 has pin-id 11.
+
+Raspberry Pi Rev1 has slightly different pin allocations. This tool works
+correctly with both, but if you are working with a .
 """
 import yaml
 import time
@@ -22,14 +25,26 @@ except:
     is_dummy_gpio = True
 
 
+# Set this to the revision of your Raspberry Pi (most likely 2)
+RASPBERRY_PI_REV = 2
+
+# Config file for pin setup and user defined commands
 CONFIG_FILE = "config.yaml"
 
-GPIO_TO_PIN_MAP = {
+# Map GPIO->PIN
+GPIO_TO_PIN_MAP_REV1 = {
     # gpio-id: pin-id,
-    17: 11,
+    0: 3, 1: 5, 4: 7, 7: 26, 8: 24, 9: 21, 10: 19, 11: 23, 14: 8,
+    15: 10, 17: 11, 18: 12, 21: 13, 22: 15, 23: 16, 24: 18, 25: 22
+}
+GPIO_TO_PIN_MAP_REV2 = {
+    # gpio-id: pin-id,
+    2: 3, 3: 5, 4: 7, 7: 26, 8: 24, 9: 21, 10: 19, 11: 23, 14: 8,
+    15: 10, 17: 11, 18: 12, 22: 15, 23: 16, 24: 18, 25: 22, 27: 13
 }
 
 
+# Scheduled command thread
 class AsyncCmd(Thread):
     is_cancelled = False
     def __init__(self, timeout_sec, cmd, handle_cmd_cb, is_replaceable=True):
@@ -47,6 +62,7 @@ class AsyncCmd(Thread):
             self.handle_cmd_cb(self.cmd)
 
 
+# Main GPIO handler class
 class GPIO(object):
     INPUT = RPiGPIO.IN
     OUTPUT = RPiGPIO.OUT
@@ -56,12 +72,18 @@ class GPIO(object):
     config = None
     commands = None
     async_pool = []
+    gpio_pin_map = GPIO_TO_PIN_MAP_REV2
 
     def __init__(self):
         # To access the real GPIOs, we need superuser rights
         if not is_dummy_gpio and geteuid() != 0:
             print "Error: gpio-daemon needs to be run as root to access GPIO ports.\n"
             exit(1)
+
+        if RASPBERRY_PI_REV == 1:
+            self.gpio_pin_map = GPIO_TO_PIN_MAP_REV1
+
+        print "Initializing gpio pins. Using setup for Raspberry Pi Rev%s." % RASPBERRY_PI_REV
 
         RPiGPIO.setmode(RPiGPIO.BOARD)
         self._gpio_init()
@@ -95,7 +117,7 @@ class GPIO(object):
     # Internal Functions
     def _gpioid_to_pinid(self, gpio_id):
         # Translate gpio-id to pin-id
-        return GPIO_TO_PIN_MAP[gpio_id]
+        return self.gpio_pin_map[gpio_id]
 
     def _reload_config(self):
         self.config = yaml.load(open(CONFIG_FILE))
