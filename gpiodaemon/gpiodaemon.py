@@ -5,6 +5,7 @@ import socket
 import traceback
 from os import getpid, remove, kill
 from optparse import OptionParser
+from time import sleep
 
 from tornado.ioloop import IOLoop
 from tornado.netutil import TCPServer
@@ -98,21 +99,39 @@ def daemon_reload():
 
 
 if __name__ == '__main__':
-    usage = """usage: %prog [options]"""
-    desc="""GPIO-Daemon is a socket interface for controlling the GPIO ports on the
-    Raspberry pi. It listens on port %s for TCP connections and can execute commands.""" % PORT
+    usage = """usage: %prog [OPTION]"""
+    desc="""GPIO-Daemon is little program to help dealing with/programming the GPIO ports on the
+    Raspberry pi via a socket interface (eg. telnet). The daemon listens on port %s for TCP
+    connections and can execute commands as well as schedule them.""" % PORT
     parser = OptionParser(usage=usage, description=desc)
 
+    parser.add_option("--start", default=False,
+        action="store_true", dest="start", help="start gpio daemon")
+
     parser.add_option("--stop", default=False,
-        action="store_true", dest="stop", help="stops a running gpio daemon")
+        action="store_true", dest="stop", help="stop a gpio daemon")
 
     parser.add_option("--reload", default=False,
-        action="store_true", dest="reload", help="reload the configuration and reset gpio")
+        action="store_true", dest="reload", help="reload the configuration and reset gpio pins")
+
+    parser.add_option("--restart", default=False,
+        action="store_true", dest="restart", help="stop the daemon and start a new one")
 
     (options, args) = parser.parse_args()
-    if options.stop:
+    if options.start:
+        main()
+
+    elif options.stop:
         daemon_shutdown()
+
     elif options.reload:
         daemon_reload()
-    else:
+
+    elif options.restart:
+        print "Shutting down daemon..."
+        daemon_shutdown()
+        sleep(5)
         main()
+
+    else:
+        parser.print_help()
