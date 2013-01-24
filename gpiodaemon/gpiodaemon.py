@@ -100,40 +100,43 @@ class GPIODaemon(Daemon):
 
             # Loop here
             IOLoop.instance().start()
+
         except SystemExit:
             logger.info("Shutting down via signal")
+
         except Exception as e:
             logger.exception(e)
+
         finally:
             try:
                 GPIO.cleanup()
-            except:
-                pass
+
+            except Exception as e:
+                logger.exception(e)
+
             finally:
                 logger.info("GPIODaemon stopped")
 
 
 # Console start
 if __name__ == '__main__':
+    # Prepare help and options
     usage = """usage: %prog start|stop|restart|reload"""
     desc="""GPIO-Daemon is little program to help dealing with/programming the
 GPIO ports on the Raspberry pi via a socket interface (eg. telnet). The
 daemon listens on port %s for TCP connections.""" % PORT
     parser = OptionParser(usage=usage, description=desc)
-
-    #parser.add_option("--start", default=False,
-    #    action="store_true", dest="start", help="start gpio daemon")
-
     (options, args) = parser.parse_args()
 
+    # Setup daemon
     daemon = GPIODaemon(PIDFILE)
 
+    # Process startup argument
     if not args:
         parser.print_help()
 
     elif "start" == args[0]:
         daemon.start()
-        sys.exit(0)
 
     elif "stop" == args[0]:
         daemon.stop()

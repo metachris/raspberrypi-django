@@ -149,15 +149,20 @@ class GPIO(object):
         self.logger.info("execute> %s" % internal_cmd)
         cmd_parts = internal_cmd.split(" ")
         cmd = cmd_parts[0]
+
         if cmd == "set":
             gpio_id, value = cmd_parts[1:3]
+
             if value == "HIGH":
                 value = self.HIGH
+
             elif value == "LOW":
                 value = self.LOW
+
             else:
                 self.logger.warn("Error cannot handle command '%s' due to bad value", internal_cmd)
                 return
+
             self.gpio_output(int(gpio_id), value)
 
         elif cmd == "rtimeout":
