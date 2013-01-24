@@ -44,6 +44,7 @@ GPIO_TO_PIN_MAP_REV2 = {
 # Scheduled command thread
 class AsyncCmd(Thread):
     is_cancelled = False
+    is_finished = False
     def __init__(self, timeout_sec, cmd, handle_cmd_cb, is_replaceable=True):
         # If is_replaceable is True and another timeout with the same command is added, the
         # existing timeout will be suspended and only the new one executed.
@@ -57,6 +58,7 @@ class AsyncCmd(Thread):
         time.sleep(self.timeout_sec)
         if not self.is_cancelled:
             self.handle_cmd_cb(self.cmd)
+        self.is_finished = True
 
 
 # Main GPIO handler class
@@ -177,12 +179,14 @@ class GPIO(object):
                     async_cmd.is_cancelled = True
 
             # Remove cancelled threads from the pool
-            self.async_pool[:] = [t for t in self.async_pool if not t.is_cancelled]
+            self.async_pool[:] = [t for t in self.async_pool if (not t.is_cancelled) and (not t.is_finished)]
 
             # Now add new task
             t = AsyncCmd(int(timeout), cmd, self.handle_cmd, is_replaceable=True)
             t.start()
             self.async_pool.append(t)
+
+            self.logger.info(self.async_pool)
 
         else:
             self.logger.warn("command '%s' not recognized", cmd)
