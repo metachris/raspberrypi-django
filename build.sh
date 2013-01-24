@@ -10,14 +10,15 @@ cp -pvr /Users/chris/Projects/private/raspberrypi/projects/django .
 
 echo "Cleaning Up..."
 cd django
-rm -rf env
-rm -rf .git*
-rm -rf app/static/twitter-bootstrap/.git*
 
+rm -rf env
 rm -rf .idea
 rm -rf .DS_Store
 rm fabfile.*
 rm build.sh
+rm deployments.log
+
+find ./ -name ".git" | xargs rm -rf
 find ./ -name "*.pyc" | xargs rm -f
 
 echo "Packing..."

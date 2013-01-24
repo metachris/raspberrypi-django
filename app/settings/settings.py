@@ -207,7 +207,7 @@ LOGGING = {
     # This catches all python scripts logging messages
     'root': {
         'handlers': ['file'],
-        'level': 'INFO',
+        'level': 'DEBUG',
         }
 }
 
