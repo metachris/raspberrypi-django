@@ -7,10 +7,12 @@ configuration file, scheduled (deferred) tasks, ...
 The configuration file can be found at `gpiodaemon/config.yaml`. Edit
 this to your project specific gpio needs!
 """
+import os
 import sys
 import signal
 import socket
 import traceback
+import logging
 from os import getpid, remove, kill
 from optparse import OptionParser
 from time import sleep
@@ -18,10 +20,23 @@ from time import sleep
 from tornado.ioloop import IOLoop
 from tornado.netutil import TCPServer
 
+from daemon import Daemon
 import gpiomanager
+
+
+CONFIG_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "config.yaml")
+
+LOGFILE = "/opt/rpi-django/logs/gpiodaemon.log"
+LOGLEVEL = logging.DEBUG
 
 PORT = 9101
 PIDFILE = "/tmp/gpiodaemon.pid"
+
+
+# Setup Logging
+logging.basicConfig(filename=LOGFILE, format='%(levelname)s | %(asctime)s | %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+logger = logging.getLogger(__name__)
+logger.setLevel(LOGLEVEL)
 
 
 # Catch SIGINT to shut the daemon down (eg. via $ kill -s SIGINT [proc-id])
@@ -33,7 +48,7 @@ signal.signal(signal.SIGINT, signal_handler)
 # Each connected client gets a TCPConnection object
 class TCPConnection(object):
     def __init__(self, gpio, stream, address):
-        print '- new connection from %s' % repr(address)
+        logger.debug('- new connection from %s' % repr(address))
         self.GPIO = gpio
         self.stream = stream
         self.address = address
@@ -52,7 +67,7 @@ class TCPConnection(object):
         pass
 
     def _on_close(self):
-        print '- client quit %s' % repr(self.address)
+        logger.debug('- client quit %s' % repr(self.address))
 
 
 # The main server class
@@ -60,34 +75,12 @@ class GPIOServer(TCPServer):
     def __init__(self, gpio, io_loop=None, ssl_options=None, **kwargs):
         self.GPIO = gpio
         TCPServer.__init__(self, io_loop=io_loop, ssl_options=ssl_options, **kwargs)
-        print 'GPIOServer started'
 
     def handle_stream(self, stream, address):
-        TCPConnection(self.GPIO, stream, address)
-
-
-# Start of the server. Loops at IOLoop... until exceptions occur.
-def start_server():
-    GPIO = gpiomanager.GPIO()
-    gpio_server = GPIOServer(GPIO)
-    gpio_server.listen(PORT)
-
-    try:
-        IOLoop.instance().start()
-    except SystemExit:
-        print "Shutting down via signal"
-    except:
-        print traceback.format_exc()
-    finally:
-        GPIO.cleanup()
-        print "GPIOServer stopped"
-
-
-# Helper for shutting down a daemon process
-def daemon_shutdown():
-    """Shuts down a daemon running on localhost by sending SIGINT"""
-    pid = open(PIDFILE).read()
-    kill(int(pid), signal.SIGINT)
+        try:
+            TCPConnection(self.GPIO, stream, address)
+        except:
+            print traceback.format_exc()
 
 
 # Helper to reload config of a running daemon
@@ -100,46 +93,59 @@ def daemon_reload():
         sock.close()
 
 
+class GPIODaemon(Daemon):
+    def run(self):
+        try:
+            logger.info("Starting GPIODaemon...")
+            GPIO = gpiomanager.GPIO(logger=logger, configfile=CONFIG_FILE)
+            gpio_server = GPIOServer(GPIO)
+            gpio_server.listen(PORT)
+
+            # Loop here
+            IOLoop.instance().start()
+        except SystemExit:
+            logger.info("Shutting down via signal")
+        except Exception as e:
+            logger.exception(e)
+        finally:
+            try:
+                GPIO.cleanup()
+            except:
+                pass
+            finally:
+                logger.info("GPIODaemon stopped")
+
+
 # Console start
 if __name__ == '__main__':
-    with open(PIDFILE, "w") as f:
-        f.write("%s" % getpid())
-
-    usage = """usage: %prog [OPTION]"""
-    desc="""GPIO-Daemon is little program to help dealing with/programming the GPIO ports on the
-    Raspberry pi via a socket interface (eg. telnet). The daemon listens on port %s for TCP
-    connections and can execute commands as well as schedule them.""" % PORT
+    usage = """usage: %prog start|stop|restart|reload"""
+    desc="""GPIO-Daemon is little program to help dealing with/programming the
+GPIO ports on the Raspberry pi via a socket interface (eg. telnet). The
+daemon listens on port %s for TCP connections.""" % PORT
     parser = OptionParser(usage=usage, description=desc)
 
-    parser.add_option("--start", default=False,
-        action="store_true", dest="start", help="start gpio daemon")
-
-    parser.add_option("--stop", default=False,
-        action="store_true", dest="stop", help="stop a gpio daemon")
-
-    parser.add_option("--reload", default=False,
-        action="store_true", dest="reload", help="reload the configuration and reset gpio pins")
-
-    parser.add_option("--restart", default=False,
-        action="store_true", dest="restart", help="stop the daemon and start a new one")
+    #parser.add_option("--start", default=False,
+    #    action="store_true", dest="start", help="start gpio daemon")
 
     (options, args) = parser.parse_args()
-    if options.start:
-        start_server()
 
-    elif options.stop:
-        daemon_shutdown()
+    daemon = GPIODaemon(PIDFILE)
 
-    elif options.reload:
+    if not args:
+        parser.print_help()
+
+    elif "start" == args[0]:
+        daemon.start()
+        sys.exit(0)
+
+    elif "stop" == args[0]:
+        daemon.stop()
+
+    elif "reload" == args[0]:
         daemon_reload()
 
-    elif options.restart:
-        print "Shutting down daemon..."
-        daemon_shutdown()
-        sleep(5)
-        start_server()
+    elif "restart" == args[0]:
+        daemon.restart()
 
     else:
         parser.print_help()
-
-    remove(PIDFILE)

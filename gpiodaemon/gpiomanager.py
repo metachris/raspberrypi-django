@@ -28,9 +28,6 @@ except:
 # Set this to the revision of your Raspberry Pi (most likely 2)
 RASPBERRY_PI_REV = 2
 
-# Config file for pin setup and user defined commands
-CONFIG_FILE = "config.yaml"
-
 # Map GPIO->PIN
 GPIO_TO_PIN_MAP_REV1 = {
     # gpio-id: pin-id,
@@ -74,19 +71,24 @@ class GPIO(object):
     async_pool = []
     gpio_pin_map = GPIO_TO_PIN_MAP_REV2
 
-    def __init__(self):
+    def __init__(self, logger, configfile):
+        self.logger = logger
+        self.fn_config = configfile
+
         # To access the real GPIOs, we need superuser rights
         if not is_dummy_gpio and geteuid() != 0:
             print "Error: gpio-daemon needs to be run as root to access GPIO ports.\n"
+            self.logger.error("Error: gpio-daemon needs to be run as root to access GPIO ports.")
             exit(1)
 
         if RASPBERRY_PI_REV == 1:
             self.gpio_pin_map = GPIO_TO_PIN_MAP_REV1
 
-        print "Initializing gpio pins. Using setup for Raspberry Pi Rev%s." % RASPBERRY_PI_REV
+        self.logger.info("Initializing gpio pins. Using setup for Raspberry Pi Rev%s.", RASPBERRY_PI_REV)
 
         RPiGPIO.setmode(RPiGPIO.BOARD)
         self._gpio_init()
+
 
     # Public Functions
     def gpio_setup(self, gpio_id, mode=OUTPUT):
@@ -105,7 +107,7 @@ class GPIO(object):
     def handle_cmd(self, cmd):
         # Called from tcp daemon if command comes in
         cmd = cmd.strip()
-        print "cmd: '%s'" % cmd
+        self.logger.info("cmd: '%s'" % cmd)
         if cmd == "reload":
             self.reload()
         elif cmd in self.commands:
@@ -120,14 +122,13 @@ class GPIO(object):
         return self.gpio_pin_map[gpio_id]
 
     def _reload_config(self):
-        self.config = yaml.load(open(CONFIG_FILE))
-        print self.config
+        self.config = yaml.load(open(self.fn_config))
+        self.logger.info("Config loaded: %s", self.config)
         self.commands = self.config["commands"]
 
     def _gpio_init(self):
         # Read config and set modes accordingly
         RPiGPIO.cleanup()
-
         self._reload_config()
 
         # Setup pins according to config file
@@ -137,7 +138,7 @@ class GPIO(object):
             elif mode == "INPUT":
                 mode = self.INPUT
             else:
-                print "Error: cannot set mode to '%s' (_gpio_init)" % mode
+                self.logger.warn("Error: cannot set mode to '%s' (_gpio_init)", mode)
                 return
 
             # Setup pin to default mode from config file
@@ -145,7 +146,7 @@ class GPIO(object):
 
     def _handle_cmd(self, internal_cmd):
         # Internal cmd is the actuall command (triggered by the user command)
-        print "execute> %s" % internal_cmd
+        self.logger.info("execute> %s" % internal_cmd)
         cmd_parts = internal_cmd.split(" ")
         cmd = cmd_parts[0]
         if cmd == "set":
@@ -155,7 +156,7 @@ class GPIO(object):
             elif value == "LOW":
                 value = self.LOW
             else:
-                print "Error cannot handle command '%s' due to bad value" % internal_cmd
+                self.logger.warn("Error cannot handle command '%s' due to bad value", internal_cmd)
                 return
             self.gpio_output(int(gpio_id), value)
 
@@ -163,7 +164,7 @@ class GPIO(object):
             # Replaceable timeout. Replaces based on "cmd" only.
             timeout = cmd_parts[1]
             cmd = " ".join(cmd_parts[2:])
-            print "understood rtimeout. cmd in %s seconds: `%s`" % (timeout, cmd)
+            self.logger.info("understood rtimeout. cmd in %s seconds: `%s`", timeout, cmd)
 
             # Disable all old ones from the pool
             for async_cmd in self.async_pool:
@@ -179,7 +180,7 @@ class GPIO(object):
             self.async_pool.append(t)
 
         else:
-            print "command not recognized"
+            self.logger.warn("command '%s' not recognized", cmd)
 
 
 if __name__ == "__main__":
