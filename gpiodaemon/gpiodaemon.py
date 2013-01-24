@@ -137,6 +137,7 @@ daemon listens on port %s for TCP connections.""" % PORT
 
     elif "start" == args[0]:
         daemon.start()
+        print "GPIO daemon started."
 
     elif "stop" == args[0]:
         daemon.stop()

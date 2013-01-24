@@ -19,7 +19,7 @@ try:
     import RPi.GPIO as RPiGPIO
     is_dummy_gpio = False
 
-except:
+except ImportError:
     import dummy
     RPiGPIO = dummy.Dummy()
     is_dummy_gpio = True
@@ -77,9 +77,8 @@ class GPIO(object):
         self.logger = logger
         self.fn_config = configfile
 
-        # To access the real GPIOs, we need superuser rights
+        # To access the real GPIOs, we need superuser rights.
         if not is_dummy_gpio and geteuid() != 0:
-            print "Error: gpio-daemon needs to be run as root to access GPIO ports.\n"
             self.logger.error("Error: gpio-daemon needs to be run as root to access GPIO ports.")
             exit(1)
 
@@ -87,10 +86,8 @@ class GPIO(object):
             self.gpio_pin_map = GPIO_TO_PIN_MAP_REV1
 
         self.logger.info("Initializing gpio pins. Using setup for Raspberry Pi Rev%s.", RASPBERRY_PI_REV)
-
         RPiGPIO.setmode(RPiGPIO.BOARD)
         self._gpio_init()
-
 
     # Public Functions
     def gpio_setup(self, gpio_id, mode=OUTPUT):
@@ -110,11 +107,14 @@ class GPIO(object):
         # Called from tcp daemon if command comes in
         cmd = cmd.strip()
         self.logger.info("cmd: '%s'" % cmd)
+
         if cmd == "reload":
             self.reload()
+
         elif cmd in self.commands:
             # translate user-command to system-command and execute
             self._handle_cmd(self.commands[cmd])
+
         else:
             self._handle_cmd(cmd)
 
@@ -185,8 +185,6 @@ class GPIO(object):
             t = AsyncCmd(int(timeout), cmd, self.handle_cmd, is_replaceable=True)
             t.start()
             self.async_pool.append(t)
-
-            self.logger.info(self.async_pool)
 
         else:
             self.logger.warn("command '%s' not recognized", cmd)
