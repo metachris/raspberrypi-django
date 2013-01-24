@@ -24,10 +24,10 @@ from daemon import Daemon
 import gpiomanager
 
 
-CONFIG_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "config.yaml")
-
 LOGFILE = "/opt/rpi-django/logs/gpiodaemon.log"
 LOGLEVEL = logging.DEBUG
+
+CONFIG_FILE = os.path.join(os.path.abspath(os.path.dirname(__file__)), "config.yaml")
 
 PORT = 9101
 PIDFILE = "/tmp/gpiodaemon.pid"
@@ -77,10 +77,7 @@ class GPIOServer(TCPServer):
         TCPServer.__init__(self, io_loop=io_loop, ssl_options=ssl_options, **kwargs)
 
     def handle_stream(self, stream, address):
-        try:
-            TCPConnection(self.GPIO, stream, address)
-        except:
-            print traceback.format_exc()
+        TCPConnection(self.GPIO, stream, address)
 
 
 # Helper to reload config of a running daemon
