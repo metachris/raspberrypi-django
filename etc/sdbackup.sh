@@ -1,8 +1,13 @@
 #!/bin/bash
 #
-# SD card backup script
+# Scrappy SD card backup script. Use with caution. Not
+# recommended to use without reading the source code.
 #
-# Does not work on OSX due to filesystem issues.
+# Only works on Linux (not OSX) because of fs issues.
+#
+# Partition recognition:
+# - if mounted: filesystem type ('vfat' and 'ext4')
+# - if unmounted: partition type id ('c' and '83')
 #
 # Example partitions (if SD card is /dev/sdb):
 #
@@ -11,9 +16,6 @@
 # /dev/sdb2            3202        7298      131104   82  Linux swap / Solaris
 # /dev/sdb3            7299      242560     7528384   83  Linux
 #
-# Partition-sizes do not matter.
-#
-
 BACKUPDIR="/home/chris/shared/raspberry"
 DEVICE_DEFAULT="/dev/sdb"
 EXCLUDE_ROOT_DIRS="boot/ dev/ lost+found/ mnt/ proc/ tmp/"
