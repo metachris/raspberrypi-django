@@ -6,9 +6,11 @@ from django.shortcuts import render
 import thermostat.models as models
 import mainapp.tools.gpio
 
+# Global gpio-client which keeps an open connection
+# and can send data to the gpio daemon at any point in time.
 gpio_client = mainapp.tools.gpio.GPIOClient().connect()
 
-
+# Views start here
 def home(request):
     last_events = models.ThermoSwitchEvent.objects.all().order_by("-date_created")[:5]
 
