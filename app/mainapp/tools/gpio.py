@@ -2,16 +2,19 @@ import socket
 
 HOST, PORT = "localhost", 9101
 
-def send_to_gpio_daemon(data):
-    # Create a socket (SOCK_STREAM means a TCP socket)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+class GPIOClient(object):
+    def __init__(self):
+        # Create a socket (SOCK_STREAM means a TCP socket)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    try:
-        # Connect to server and send data
-        sock.connect((HOST, PORT))
-        sock.sendall(data + "\n\n")  # second newline (empty packet) terminates the connection server-side
+    def connect(self):
+        self.sock.connect((HOST, PORT))
+        return self
 
-    finally:
-        sock.close()
+    def send(self, data):
+        self.sock.sendall(data + "\n")
 
-    print "command '%s' sent to GPIO daemon" % data
+    def close(self):
+        self.sock.sendall("\n")
+        self.sock.close()
+        print "command '%s' sent to GPIO daemon" % data
