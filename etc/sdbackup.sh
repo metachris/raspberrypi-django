@@ -16,13 +16,17 @@
 # /dev/sdb2            3202        7298      131104   82  Linux swap / Solaris
 # /dev/sdb3            7299      242560     7528384   83  Linux
 #
+
+# Change these to your needs
 BACKUPDIR="/home/chris/shared/raspberry"
 DEVICE_DEFAULT="/dev/sdb"
+
+# Only change if you know what you are doing
 EXCLUDE_ROOT_DIRS="boot/ dev/ lost+found/ mnt/ proc/ tmp/"
-
 MOUNTPOINT="/mnt/rpi_sdcard"
-CMD_TAR="tar -pcf"
 
+# Don't change these
+CMD_TAR="tar -pcf"
 DATESTR=`date +%Y-%m-%d_%H:%M`
 BACKUPDIR="${BACKUPDIR}/backup_${DATESTR}"
 

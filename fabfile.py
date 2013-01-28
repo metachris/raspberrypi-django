@@ -21,15 +21,20 @@ def upload_settings():
     put("app/settings/settings_production.py", "/opt/rpi-django/django/app/settings/settings_production.py")
 
 def restart_django():
-    run("kill -9 `cat /tmp/uwsgi-django.pid`")
-    run("uwsgi --ini /opt/rpi-django/django/app/uwsgi.ini")
+    run("/etc/init.d/uwsgi.django restart")
+
+def restart_nginx():
+    pass
+
+def restart_gpiodaemon():
+    pass
 
 def deploy():
     with cd("/opt/rpi-django/django"):
         run("git reset --hard")
         run("git pull")
 
-    #restart_django()
+    restart_django()
     _log("success")
 
 def _log(info, id="deployment"):
