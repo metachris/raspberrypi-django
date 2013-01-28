@@ -3,42 +3,46 @@ Receives user-commands and communicates with the RPi.GPIO lib to switch the
 pins etc. Also manages scheduled tasks (eg. "rtimeout 1800 thermo off" to
 execute the command "thermo off" in 30 minutes (1800 seconds).
 
-GPIOmanager uses GPIO-ids, which are different from the pin-ids. For
-instance GPIO17 has pin-id 11.
+Use:
 
-Raspberry Pi Rev1 has slightly different pin allocations. This tool works
-correctly with both, but if you are working with a .
+    GPIO = gpiomanager.GPIO("settings.yaml")
+    GPIO.gpio_setup(17, GPIO.OUTPUT)
+    GPIO.gpio_output(17, GPIO.HIGH)
+    value = gpio_readinput(17)
+
+    GPIO.cleanup()
+
+    GPIO.reload()
+    GPIO.handle_cmd(<cmd>)
 """
 import yaml
 import time
-from os import geteuid
+import logging
 from threading import Thread
+from traceback import format_exc
 
-# Import either the dummy or the real lib
+# Import GPIO module -- either the dummy or the real lib
 try:
-    import RPi.GPIO as RPiGPIO
-    is_dummy_gpio = False
+    import RPi.GPIO.SetupException as GPIOSetupException
+    try:
+        import RPi.GPIO as RPiGPIO
+        is_dummy_gpio = False
+    except GPIOSetupException as e:
+        # To access the real GPIOs, we need superuser rights.
+        raise e
+        exit(1)
 
 except ImportError:
     import dummy
     RPiGPIO = dummy.Dummy()
     is_dummy_gpio = True
 
+except:
+    print format_exc()
 
-# Set this to the revision of your Raspberry Pi (most likely 2)
-RASPBERRY_PI_REV = 2
 
-# Map GPIO->PIN
-GPIO_TO_PIN_MAP_REV1 = {
-    # gpio-id: pin-id,
-    0: 3, 1: 5, 4: 7, 7: 26, 8: 24, 9: 21, 10: 19, 11: 23, 14: 8,
-    15: 10, 17: 11, 18: 12, 21: 13, 22: 15, 23: 16, 24: 18, 25: 22
-}
-GPIO_TO_PIN_MAP_REV2 = {
-    # gpio-id: pin-id,
-    2: 3, 3: 5, 4: 7, 7: 26, 8: 24, 9: 21, 10: 19, 11: 23, 14: 8,
-    15: 10, 17: 11, 18: 12, 22: 15, 23: 16, 24: 18, 25: 22, 27: 13
-}
+# BCM Mode uses GPIO ids, BOARD Mode uses pin ids
+GPIO_MODE = RPiGPIO.BCM
 
 
 # Scheduled command thread
@@ -71,30 +75,24 @@ class GPIO(object):
     config = None
     commands = None
     async_pool = []
-    gpio_pin_map = GPIO_TO_PIN_MAP_REV2
 
     def __init__(self, logger, configfile):
         self.logger = logger
         self.fn_config = configfile
 
-        # To access the real GPIOs, we need superuser rights.
-        if not is_dummy_gpio and geteuid() != 0:
-            self.logger.error("Error: gpio-daemon needs to be run as root to access GPIO ports.")
-            exit(1)
-
-        if RASPBERRY_PI_REV == 1:
-            self.gpio_pin_map = GPIO_TO_PIN_MAP_REV1
-
-        self.logger.info("Initializing gpio pins. Using setup for Raspberry Pi Rev%s.", RASPBERRY_PI_REV)
-        RPiGPIO.setmode(RPiGPIO.BOARD)
+        self.logger.info("Initializing gpio pins.")
+        RPiGPIO.setmode(GPIO_MODE)
         self._gpio_init()
 
     # Public Functions
     def gpio_setup(self, gpio_id, mode=OUTPUT):
-        RPiGPIO.setup(self._gpioid_to_pinid(gpio_id), mode)
+        RPiGPIO.setup(gpio_id, mode)
 
     def gpio_output(self, gpio_id, value=HIGH):
-        RPiGPIO.output(self._gpioid_to_pinid(gpio_id), value)
+        RPiGPIO.output(gpio_id, value)
+
+    def gpio_readinput(self, gpio_id):
+        return RPiGPIO.input(gpio_id)
 
     def cleanup(self):
         # Reset all channels that have been set up
@@ -104,7 +102,8 @@ class GPIO(object):
         self._gpio_init()
 
     def handle_cmd(self, cmd):
-        # Called from tcp daemon if command comes in
+        # Called from tcp daemon if command comes in. Any return value will be sent
+        # to the socket connection.
         cmd = cmd.strip()
         self.logger.info("cmd: '%s'" % cmd)
 
@@ -113,15 +112,10 @@ class GPIO(object):
 
         elif cmd in self.commands:
             # translate user-command to system-command and execute
-            self._handle_cmd(self.commands[cmd])
+            return self._handle_cmd(self.commands[cmd])
 
         else:
-            self._handle_cmd(cmd)
-
-    # Internal Functions
-    def _gpioid_to_pinid(self, gpio_id):
-        # Translate gpio-id to pin-id
-        return self.gpio_pin_map[gpio_id]
+            return self._handle_cmd(cmd)
 
     def _reload_config(self):
         self.config = yaml.load(open(self.fn_config))
@@ -147,7 +141,8 @@ class GPIO(object):
             self.gpio_setup(gpio_id, mode)
 
     def _handle_cmd(self, internal_cmd):
-        # Internal cmd is the actuall command (triggered by the user command)
+        # Internal cmd is the actual command (triggered by the user command).
+        # Any return value will be sent to the socket connection.
         self.logger.info("execute> %s" % internal_cmd)
         cmd_parts = internal_cmd.split(" ")
         cmd = cmd_parts[0]
@@ -166,6 +161,12 @@ class GPIO(object):
                 return
 
             self.gpio_output(int(gpio_id), value)
+
+        elif cmd == "read":
+            # examples:
+            #   `read 17`  # reads the input on the gpio pin and returns the value
+            gpio_id = cmd_parts[1]
+            return self.gpio_readinput(gpio_id)
 
         elif cmd == "rtimeout":
             # Replaceable timeout. Replaces based on "cmd" only.
@@ -191,17 +192,14 @@ class GPIO(object):
 
 
 if __name__ == "__main__":
-    # Some testing
-    g = GPIO()
+    # Setup Logging
+    logging.basicConfig(format='%(levelname)s | %(asctime)s | %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+
+    # Run tests
+    g = GPIO(logger, "config.yaml")
     g.handle_cmd("thermo on")
     g.handle_cmd("rtimeout 3 thermo off")
-    time.sleep(1)
-    g.handle_cmd("rtimeout 3 thermo off")
-    time.sleep(1)
-    g.handle_cmd("rtimeout 3 thermo off")
-    time.sleep(1)
-
-    g.handle_cmd("rtimeout 3 thermo off")
-
     time.sleep(5)
     g.cleanup()

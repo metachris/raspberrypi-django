@@ -60,7 +60,13 @@ class TCPConnection(object):
         if not data or data == "quit":
             self.stream.close()
             return
-        self.GPIO.handle_cmd(data)
+
+        # Process input
+        response = self.GPIO.handle_cmd(data)
+        if response:
+            self.stream.write("%s\n" % response.strip())
+
+        # Continue reading on this connection
         self.stream.read_until('\n', self._on_read_line)
 
     def _on_write_complete(self):
