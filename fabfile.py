@@ -14,7 +14,7 @@ HISTFILE = "deployments.log"
 # Targets
 def rpi1():
     env.use_ssh_config = True
-    env.hosts = ["raspberry1"]
+    env.hosts = ["raspberry1_root"]
 
 # Commands
 def upload_settings():
@@ -25,7 +25,7 @@ def restart_django():
     run("uwsgi --ini /opt/rpi-django/django/app/uwsgi.ini")
 
 def deploy():
-    with cd("/opt/rpi-django/"):
+    with cd("/opt/rpi-django/django"):
         run("git reset --hard")
         run("git pull")
 

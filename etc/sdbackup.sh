@@ -28,10 +28,10 @@ BACKUPDIR="${BACKUPDIR}/backup_${DATESTR}"
 
 function backup {
     # use: backup <boot_mntpoint> <root_mntpoint>
-    mkdir -p $BACKUPDIR
-
     DIR_BOOT=$1
     DIR_ROOT=$2
+
+    mkdir -p $BACKUPDIR
 
     echo "Backing up 'boot'. This will take a moment..."
     cd $DIR_BOOT
