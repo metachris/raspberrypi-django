@@ -19,18 +19,11 @@ import yaml
 import time
 import logging
 from threading import Thread
-from traceback import format_exc
 
 # Import GPIO module -- either the dummy or the real lib
 try:
-    import RPi.GPIO.SetupException as GPIOSetupException
-    try:
-        import RPi.GPIO as RPiGPIO
-        is_dummy_gpio = False
-    except GPIOSetupException as e:
-        # To access the real GPIOs, we need superuser rights.
-        raise e
-        exit(1)
+    import RPi.GPIO as RPiGPIO
+    is_dummy_gpio = False
 
 except ImportError:
     import dummy
@@ -38,7 +31,8 @@ except ImportError:
     is_dummy_gpio = True
 
 except:
-    print format_exc()
+    # Will alert user if not run as root.
+    raise
 
 
 # BCM Mode uses GPIO ids, BOARD Mode uses pin ids
