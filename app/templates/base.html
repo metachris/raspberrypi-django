@@ -22,10 +22,14 @@
     <link rel="apple-touch-icon" href="{{ STATIC_URL }}bootstrap/ico/apple-touch-icon.png">
     <link rel="apple-touch-icon" sizes="72x72" href="{{ STATIC_URL }}bootstrap/ico/apple-touch-icon-72x72.png">
     <link rel="apple-touch-icon" sizes="114x114" href="{{ STATIC_URL }}bootstrap/ico/apple-touch-icon-114x114.png">
+
+    {% block head_extra %}{% endblock %}
 </head>
 
 <body data-spy="scroll" data-target=".subnav">
-    {% block body %}{% endblock %}
+    <div class="container">
+        {% block body %}{% endblock %}
+    </div>
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.js"></script>

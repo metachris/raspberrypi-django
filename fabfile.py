@@ -38,7 +38,6 @@ def deploy():
         run("git reset --hard")
         run("git pull")
 
-    upload_settings()
     restart_django()
     _log("success")
 
