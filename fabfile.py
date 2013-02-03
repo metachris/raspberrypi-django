@@ -6,8 +6,8 @@ uwsgi.django.
 
 Commands:
 
-    upload_settings ..... Upload `settings_production.py`
     deploy .............. Update repos, migrate db schemas and restart Django
+    upload_settings ..... Upload `settings_production.py`
 
     restart_django ...... Restart the django uwsgi daemon
     restart_nginx ....... Restart the Nginx daemon

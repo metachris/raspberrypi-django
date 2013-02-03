@@ -1,7 +1,18 @@
 @import url(http://fonts.googleapis.com/css?family=Finger+Paint);
 
+body {
+    color: #efefef;
+    background-color: #080808;
+}
+
+hr {
+    border-bottom-width: 0px;
+    border-top:1px solid #666;
+}
+
 h1 a {
-    color: rgb(0, 99, 148);
+    /* color: rgb(0, 99, 148);  /* blue */
+    color: rgb(236, 113, 0);
 }
 
 .font1 {
