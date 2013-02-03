@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block body %}
+
 <div class="container" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
      xmlns="http://www.w3.org/1999/html">
 
@@ -10,49 +11,48 @@
 
 <div class="row">
     <div class="span4">
-
-        <p><h2>Thermo Control</h2></p>
-
-        <p>
-            {% if thermo_is_heating %}
-                <p>
-                    <a href="/thermostat/turn_off"><button class="btn btn-large btn-warning" type="button">Turn off</button></a>
-                </p>
-                <p style="margin-top: 20px;">
-                    <span class="label label-success">Heat is ON ({{ thermo_time_since_last_on_mins }} more minutes)</span>
-                </p>
-            {% else %}
-                <p>
+        <h2>Thermo Control</h2>
+        {% if thermo_is_heating %}
+            <p style="margin-top: 6px;">
+                <span class="label label-success">Heat is ON ({{ thermo_time_since_last_on_mins }} more minutes)</span>
+            </p>
+            <p style="margin-top: 16px;">
+                <a href="/thermostat/turn_off"><button class="btn btn-large btn-warning" type="button">Turn off</button></a>
+            </p>
+        {% else %}
+            <p style="margin-top:10px;">
                 <a href="/thermostat/turn_on"><button class="btn btn-large btn-success" type="button">Turn on for 30 min</button></a>
-                </p>
-            {% endif %}
-        </p>
-
-        <p style="margin-top: 20px;">
-            <p><h4>Last Events</h4></p>
-            <ul>
+            </p>
+        {% endif %}
+    </div>
+    <div class="span4">
+        <p><h4>Last Events</h4></p>
+        <ul>
             {% for event in thermo_lastevents %}
                 <li>{{ event.date_created|timesince }} ago (set to {{ event.event_value }})</li>
             {% endfor %}
-            </ul>
-        </p>
-
+        </ul>
     </div>
-    <div class="span4">
-        <p><h2>Door Control</h2></p>
 
-        <p>
+</div>
+
+<hr />
+
+<div class="row">
+    <div class="span4">
+        <h2>Door Control</h2>
+        <p style="margin-top:10px;">
             <a href="/door/unlock"><button class="btn btn-large btn-success" type="button">Open door for 5 seconds</button></a>
         </p>
+    </div>
 
-        <p style="margin-top: 20px;">
-            <p><h4>Last Unlocks</h4></p>
-            <ul>
-                {% for event in last_events_door %}
-                    <li>{{ event.date_created|timesince }} ago</li>
-                {% endfor %}
-            </ul>
-        </p>
+    <div class="span4">
+        <p><h4>Last Unlocks</h4></p>
+        <ul>
+            {% for event in last_events_door %}
+                <li>{{ event.date_created|timesince }} ago</li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 
