@@ -40,7 +40,10 @@ The following setup is for your development machine:
 
 Get Pip
 -------
-    $ apt-get install python-setuptools
+    $ apt-get install python-setuptools && easy_install-2.7 pip
+
+or
+
     $ curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py
     $ sudo python get-pip.py
 
@@ -78,15 +81,13 @@ Customize Django
 ----------------
 
 1. Edit the settings
-2. Init DB:
+2. Create the DB and make the initial migration with (South)[http://south.readthedocs.org/en/latest/tutorial/part1.html]:
 
 	$ python manage.py syncdb
-	$ python manage.py schemamigration mainapp --initial
+	$ python manage.py schemamigration <APPNAME> --initial
+	$ python manage.py migrate <APPNAME>
 
+For all subsequent migrations use the following commands:
 
-
-
-
-
-
-
+    $ python manage.py schemamigration <APPNAME> --auto
+    $ python manage.py migrate <APPNAME>

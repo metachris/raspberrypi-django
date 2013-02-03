@@ -17,4 +17,3 @@ class GPIOClient(object):
     def close(self):
         self.sock.sendall("\n")
         self.sock.close()
-        print "command '%s' sent to GPIO daemon" % data

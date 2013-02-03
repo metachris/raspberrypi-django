@@ -5,9 +5,10 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', 'thermostat.views.home', name='home'),
+    url(r'^$', 'mainapp.views.home', name='home'),
     url(r'^thermostat/turn_on$', 'thermostat.views.turn_on', name='thermo_on'),
     url(r'^thermostat/turn_off$', 'thermostat.views.turn_off', name='thermo_off'),
+    url(r'^door/unlock', 'mainapp.views.door_unlock', name='door_unlock'),
 
     # Login and logout url's
     (r'^login/$', 'django.contrib.auth.views.login',

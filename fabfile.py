@@ -27,13 +27,18 @@ def restart_nginx():
     pass
 
 def restart_gpiodaemon():
-    pass
+    run("python2.7 /opt/rpi-django/raspberrypi-gpio-utils/gpio-daemon/gpiodaemon.py restart")
 
 def deploy():
     with cd("/opt/rpi-django/django"):
         run("git reset --hard")
         run("git pull")
 
+    with cd("/opt/rpi-django/raspberrypi-gpio-utils/gpio-daemon"):
+        run("git reset --hard")
+        run("git pull")
+
+    upload_settings()
     restart_django()
     _log("success")
 

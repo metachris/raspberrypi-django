@@ -1,34 +1,60 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="container" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<div class="container" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html"
+     xmlns="http://www.w3.org/1999/html">
 
 <div class="page-header">
     <h1><a href="/">WG Raspberry 1</a></h1>
 </div>
 
-<p><h2>Thermo Control</h2></p>
+<div class="row">
+    <div class="span4">
 
-    {% if thermo_is_heating %}
+        <p><h2>Thermo Control</h2></p>
+
         <p>
-            <span class="label label-success">Heat is ON ({{ thermo_time_since_last_on_mins }} more minutes)</span>
+            {% if thermo_is_heating %}
+                <p>
+                    <a href="/thermostat/turn_off"><button class="btn btn-large btn-warning" type="button">Turn off</button></a>
+                </p>
+                <p style="margin-top: 20px;">
+                    <span class="label label-success">Heat is ON ({{ thermo_time_since_last_on_mins }} more minutes)</span>
+                </p>
+            {% else %}
+                <p>
+                <a href="/thermostat/turn_on"><button class="btn btn-large btn-success" type="button">Turn on for 30 min</button></a>
+                </p>
+            {% endif %}
         </p>
-        <br >
-        <a href="/thermostat/turn_off"><button class="btn btn-large btn-warning" type="button">Turn off</button></a>
-    {% else %}
-        <a href="/thermostat/turn_on"><button class="btn btn-large btn-success" type="button">Turn on for 30 min</button></a>
-    {% endif %}
-</p>
 
-    <br>
-<p>
-    <p><h4>Last Events</h4></p>
-    <ul>
-    {% for event in thermo_lastevents %}
-        <li>{{ event.date_created }}, set to {% if event.is_on %}ON{% else %}OFF{% endif %}</li>
-    {% endfor %}
-    </ul>
-</p>
+        <p style="margin-top: 20px;">
+            <p><h4>Last Events</h4></p>
+            <ul>
+            {% for event in thermo_lastevents %}
+                <li>{{ event.date_created|timesince }} ago (set to {{ event.event_value }})</li>
+            {% endfor %}
+            </ul>
+        </p>
+
+    </div>
+    <div class="span4">
+        <p><h2>Door Control</h2></p>
+
+        <p>
+            <a href="/door/unlock"><button class="btn btn-large btn-success" type="button">Open door for 5 seconds</button></a>
+        </p>
+
+        <p style="margin-top: 20px;">
+            <p><h4>Last Unlocks</h4></p>
+            <ul>
+                {% for event in last_events_door %}
+                    <li>{{ event.date_created|timesince }} ago</li>
+                {% endfor %}
+            </ul>
+        </p>
+    </div>
+</div>
 
 {% endblock %}
 

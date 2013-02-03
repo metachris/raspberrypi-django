@@ -1,4 +1,4 @@
-import models
+#import models
 from django.contrib import admin
 
-admin.site.register(models.ThermoSwitchEvent)
+#admin.site.register(models.ThermoSwitchEvent)
