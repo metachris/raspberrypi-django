@@ -1,4 +1,17 @@
 """
+Deployment with Fabric is super easy. Just push the changes to Github
+and run `fab rpi1 deploy`, which will update both the gpio-utils and
+the django repository, apply the django db migrations and restart
+uwsgi.django.
+
+Commands:
+
+    upload_settings ..... Upload `settings_production.py`
+    deploy .............. Update repos, migrate db schemas and restart Django
+
+    restart_django ...... Restart the django uwsgi daemon
+    restart_nginx ....... Restart the Nginx daemon
+    restart_gpiodaemon .. Restart the GPIO daemon
 """
 import os.path
 import datetime
@@ -24,20 +37,30 @@ def restart_django():
     run("/etc/init.d/uwsgi.django restart")
 
 def restart_nginx():
-    pass
+    run("/etc/init.d/nginx restart")
 
 def restart_gpiodaemon():
     run("python2.7 /opt/rpi-django/raspberrypi-gpio-utils/gpio-daemon/gpiodaemon.py restart")
 
 def deploy():
-    with cd("/opt/rpi-django/django"):
-        run("git reset --hard")
-        run("git pull")
-
+    # Update gpio-utils
     with cd("/opt/rpi-django/raspberrypi-gpio-utils/gpio-daemon"):
         run("git reset --hard")
         run("git pull")
 
+    # Update django project
+    with cd("/opt/rpi-django/django"):
+        run("git reset --hard")
+        run("git pull")
+
+    # Now apply django db migrations
+    apps = ["mainapp", "thermostat"]
+    with cd("/opt/rpi-django/django/app"):
+        for app in apps:
+            run("python2.7 manage.py migrate %s" % app)
+
+    # Restart django
+    upload_settings()
     restart_django()
     _log("success")
 
